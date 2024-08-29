@@ -11,21 +11,17 @@ class GA:
         self.P_c=0.8            #交叉概率
         self.P_m=0.3            #变异概率
         self.P_v=0.5            #选择何种方式进行交叉
-        self.P_w=0.99            #采用何种方式进行变异
-        self.Max_Itertions=100  #最大迭代次数
+        self.P_w=0.95            #采用何种方式进行变异
+        self.Max_Itertions=50  #最大迭代次数
 
     #适应度
     def fitness(self,CHS,J,Processing_time,M_num,Len):
-        Fit1=[]
+        Fit=[]
         for i in range(len(CHS)):
             d = Decode(J, Processing_time, M_num)
-            Fit1.append(d.Decode_1(CHS[i],Len))
-        Fit2 = []
-        for i in range(len(CHS)):
-            d = Decode(J, Processing_time, M_num)
-            Fit2.append(d.Decode_2(CHS[i], Len))
+            Fit.append(d.Decode_1(CHS[i],Len))        
 
-        return Fit1,Fit2
+        return Fit
 
     #机器部分交叉
     def Crossover_Machine(self,CHS1,CHS2,T0):
@@ -151,19 +147,11 @@ class GA:
         C=np.vstack((CHS1,CHS2,CHS3))
         Optimal_fit=9999
         Optimal_CHS=0
-        x = np.linspace(0, 30, 30)
-        x1=[x1 for x1 in range(self.Pop_size)]
+        x = np.linspace(0, 50, 50)
+
         Best_fit=[]
         for i in range(self.Max_Itertions):
             Fit = self.fitness(C, J, Processing_time, M_num, Len_Chromo)
-            plt.plot(x1,Fit[0],'-k')
-            plt.plot(x1, Fit[1], linestyle='-.',c="black")
-            plt.title('Comparision between two scheduling strategies')
-            plt.ylabel('Cmax')
-            plt.xlabel('Individual')
-            plt.show()
-
-
 
             Best = C[Fit.index(min(Fit))]
             best_fitness = min(Fit)
@@ -178,8 +166,7 @@ class GA:
             else:
                 Best_fit.append(Optimal_fit)
             Select = self.Select(Fit)
-            print(len(Select))
-            C=[C[Select_i-1] for Select_i in Select]
+
             for j in range(len(C)):
                 offspring = []
                 if random.random()<self.P_c:
@@ -191,6 +178,7 @@ class GA:
                         Crossover=self.Crossover_Operation(C[j],C[N_i],Len_Chromo,J_num)
                     offspring.append(Crossover[0])
                     offspring.append(Crossover[1])
+                    offspring.append(C[j])
                 if random.random()<self.P_m:
                     if random.random()<self.P_w:
                         Mutation=self.Variation_Machine(C[j],Processing_time,Len_Chromo,J)
@@ -198,11 +186,11 @@ class GA:
                         Mutation=self.Variation_Operation(C[j],Len_Chromo,J_num,J,Processing_time,M_num)
                     offspring.append(Mutation)
                 if offspring !=[]:
-                    # Fit = []
-                    # for i in range(len(offspring)):
-                    #     d = Decode(J, Processing_time, M_num)
-                    #     Fit.append(d.Decode_1(offspring[i], Len_Chromo))
-                    C[j] = random.choice(offspring)
+                    Fit = []
+                    for i in range(len(offspring)):
+                        d = Decode(J, Processing_time, M_num)
+                        Fit.append(d.Decode_1(offspring[i], Len_Chromo))
+                    C[j] = offspring[Fit.index(min(Fit))]
         plt.plot(x, Best_fit,'-k')
         plt.title(
             'the maximum completion time of each iteration for flexible job shop scheduling problem')
@@ -214,11 +202,3 @@ if __name__=='__main__':
     from MK01 import Processing_time, J, M_num, J_num, O_num
     g=GA()
     g.main(Processing_time,J,M_num,J_num,O_num)
-
-
-
-
-
-
-
-
